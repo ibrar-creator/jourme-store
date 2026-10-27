@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowDownRight,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  PackageCheck,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 import { useProducts } from "../../application/hooks/useProducts.js";
@@ -18,8 +20,7 @@ const heroSlides = [
     subtitle: "for modern living",
     style: "and everyday wear.",
     copy: "Premium clothing designed with clean silhouettes and lasting comfort.",
-    image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/clothing-real.jpg",
     label: "Clothing",
   },
   {
@@ -27,8 +28,7 @@ const heroSlides = [
     subtitle: "touches",
     style: "that complete the look.",
     copy: "Curated accessories that add polish, utility, and ease to daily styling.",
-    image:
-      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/accessories-real.jpg",
     label: "Accessories",
   },
   {
@@ -36,8 +36,7 @@ const heroSlides = [
     subtitle: "footwear",
     style: "for everyday confidence.",
     copy: "Minimal, functional shoes built for comfort, versatility, and modern routines.",
-    image:
-      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/footwear-real.jpg",
     label: "Footwear",
   },
 ];
@@ -47,6 +46,9 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [previousSlide, setPreviousSlide] = useState(null);
+  const lastSlideRef = useRef(0);
+  const transitionTimerRef = useRef(null);
 
   const { products, pagination, loading, error, refreshProducts } = useProducts({
     category,
@@ -55,19 +57,31 @@ export default function HomePage() {
     limit: 12,
   });
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % heroSlides.length);
-    }, 5000);
+  const changeSlide = useCallback((nextIndex) => {
+    if (nextIndex === lastSlideRef.current) return;
 
-    return () => window.clearInterval(timer);
+    setPreviousSlide(lastSlideRef.current);
+    lastSlideRef.current = nextIndex;
+    setActiveSlide(nextIndex);
+    window.clearTimeout(transitionTimerRef.current);
+    transitionTimerRef.current = window.setTimeout(() => {
+      setPreviousSlide(null);
+    }, 900);
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      changeSlide((lastSlideRef.current + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(transitionTimerRef.current);
+    };
+  }, [changeSlide]);
+
   function moveSlide(direction) {
-    setActiveSlide((current) => {
-      const nextIndex = (current + direction + heroSlides.length) % heroSlides.length;
-      return nextIndex;
-    });
+    changeSlide((lastSlideRef.current + direction + heroSlides.length) % heroSlides.length);
   }
 
   function goToPage(nextPage) {
@@ -114,79 +128,133 @@ export default function HomePage() {
       {/* HERO SECTION */}
       <section
         id="home"
-        className="relative isolate min-h-[570px] overflow-hidden bg-neutral-100 sm:min-h-[660px] lg:min-h-[720px]"
+        className="overflow-hidden bg-[#f6f2e9]"
       >
-        <img
-          src={activeHero.image}
-          alt={`${activeHero.label} collection`}
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
-        />
+        <div className="grid min-h-[620px] lg:min-h-[700px] lg:grid-cols-2">
+          <div className="flex flex-col items-start justify-center px-6 py-14 sm:px-12 sm:py-20 lg:px-16">
+            <div key={activeSlide} className="hero-copy-enter">
+              <div className="mb-6 flex items-center gap-3">
+                <span className="h-px w-8 bg-amber-600" />
+                <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-neutral-500 sm:text-xs">
+                  The Jourme edit <span className="px-1 text-neutral-300">/</span>{" "}
+                  {activeHero.label}
+                </p>
+              </div>
 
-        <div className="absolute inset-0 -z-10 bg-black/35" />
+              <h1 className="max-w-xl text-5xl font-medium leading-[0.98] tracking-[-0.065em] sm:text-7xl lg:text-[clamp(3rem,4vw,4rem)]">
+                {activeHero.title}
+                <br />
+                {activeHero.subtitle}
+                <br />
+                <span className="font-serif font-normal italic text-neutral-500">
+                  {activeHero.style}
+                </span>
+              </h1>
 
-        <div className="mx-auto flex min-h-[570px] max-w-[1440px] flex-col items-start justify-end px-6 pb-16 text-white sm:min-h-[660px] sm:px-12 sm:pb-20 lg:min-h-[720px] lg:px-16 lg:pb-24">
-          <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.3em] sm:text-xs">
-            LESS, BUT BETTER — COLLECTION {activeSlide + 1}
-          </p>
+              <div className="mt-7 h-px w-16 bg-neutral-300 sm:mt-9" />
 
-          <h1 className="max-w-4xl text-5xl font-medium leading-[0.98] tracking-[-0.065em] sm:text-7xl lg:text-[100px]">
-            {activeHero.title}
-            <br />
-            {activeHero.subtitle}
-            <br />
-            <span className="font-serif italic font-normal">{activeHero.style}</span>
-          </h1>
+              <div className="mt-6 flex flex-wrap items-center gap-5">
+                <a
+                  href="#shop"
+                  onClick={() => {
+                    setCategory(activeHero.label);
+                    setSearch("");
+                    setPage(1);
+                  }}
+                  className="group inline-flex items-center gap-5 bg-amber-400 px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-neutral-950 transition-colors duration-300 hover:bg-neutral-950 hover:text-white"
+                >
+                  Explore {activeHero.label}
+                  <ArrowRight
+                    size={15}
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
+                </a>
 
-          <div className="mt-8 flex flex-wrap items-center gap-5 sm:mt-10">
-            <a
-              href="#shop"
-              className="inline-flex items-center gap-5 bg-amber-300 px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-neutral-300 transition hover:bg-neutral-400"
-            >
-              Explore collection
-              <ArrowRight size={15} />
-            </a>
+                <span className="max-w-56 text-xs leading-6 text-neutral-600">
+                  {activeHero.copy}
+                </span>
+              </div>
+            </div>
 
-            <span className="max-w-44 text-xs leading-5 text-white/80">
-              {activeHero.copy}
-            </span>
-          </div>
-
-          <div className="mt-8 flex items-center gap-3">
-            <button
-              type="button"
-              aria-label="Previous slide"
-              onClick={() => moveSlide(-1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/10 text-white transition hover:bg-white/20"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              type="button"
-              aria-label="Next slide"
-              onClick={() => moveSlide(1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/10 text-white transition hover:bg-white/20"
-            >
-              <ChevronRight size={18} />
-            </button>
-            <div className="ml-2 flex items-center gap-2" aria-label="Slide indicators">
-              {heroSlides.map((slide, index) => (
-                <button
-                  key={slide.label}
-                  type="button"
-                  aria-label={`Go to ${slide.label} slide`}
-                  onClick={() => setActiveSlide(index)}
-                  className={`h-2.5 rounded-full transition ${
-                    index === activeSlide ? "w-8 bg-white" : "w-2.5 bg-white/50 hover:bg-white/80"
-                  }`}
-                />
-              ))}
+            <div className="mt-10 flex items-center gap-3" aria-label="Hero carousel controls">
+              <button
+                type="button"
+                aria-label="Previous slide"
+                onClick={() => moveSlide(-1)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-neutral-900 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                aria-label="Next slide"
+                onClick={() => moveSlide(1)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-neutral-900 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
+              >
+                <ChevronRight size={18} />
+              </button>
+              <div className="ml-2 flex items-center gap-2" aria-label="Slide indicators">
+                {heroSlides.map((slide, index) => (
+                  <button
+                    key={slide.label}
+                    type="button"
+                    aria-label={`Go to ${slide.label} slide`}
+                    onClick={() => changeSlide(index)}
+                    className={`h-2.5 rounded-full transition ${
+                      index === activeSlide ? "w-8 bg-neutral-950" : "w-2.5 bg-neutral-300 hover:bg-neutral-500"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="ml-2 text-[10px] tabular-nums tracking-[0.16em] text-neutral-500">
+                0{activeSlide + 1} <span className="text-neutral-300">/</span> 0{heroSlides.length}
+              </span>
             </div>
           </div>
-        </div>
 
-        <div className="absolute bottom-6 right-6 hidden items-center gap-2 text-[10px] uppercase tracking-widest text-white/80 sm:flex">
-          SCROLL TO DISCOVER
-          <ArrowDownRight size={16} />
+          <div className="relative min-h-[360px] overflow-hidden bg-[#f6f2e9] sm:min-h-[480px] lg:min-h-full">
+            {previousSlide !== null && (
+              <img
+                src={heroSlides[previousSlide].image}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+            <img
+              key={activeSlide}
+              src={activeHero.image}
+              alt={`${activeHero.label} collection`}
+              className="hero-image-enter absolute inset-0 h-full w-full object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-[#f6f2e9] via-[#f6f2e9]/60 to-transparent"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-label="The Jourme difference"
+        className="border-y border-neutral-200 bg-white"
+      >
+        <div className="mx-auto grid max-w-[1440px] divide-y divide-neutral-200 px-5 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-10 lg:px-16">
+          {[
+            { icon: Sparkles, title: "Thoughtfully selected", detail: "A considered edit for everyday life" },
+            { icon: PackageCheck, title: "Made to wear on repeat", detail: "Versatile essentials, easy to style" },
+            { icon: ShieldCheck, title: "Shop with confidence", detail: "Secure checkout, every time" },
+          ].map(({ icon: Icon, title, detail }) => (
+            <div key={title} className="flex items-center gap-4 py-5 sm:px-6 sm:py-6 first:sm:pl-0 last:sm:pr-0">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f6f2] text-neutral-800">
+                <Icon size={18} strokeWidth={1.6} />
+              </span>
+              <div>
+                <h2 className="text-xs font-medium text-neutral-900">{title}</h2>
+                <p className="mt-1 text-xs text-neutral-500">{detail}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
