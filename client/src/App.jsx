@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import HomePage from "./presentation/pages/HomePage.jsx";
 import CheckoutPage from "./presentation/pages/CheckoutPage.jsx";
 import ProductDetailPage from "./presentation/pages/ProductDetailPage.jsx";
+import CustomerAccountPage from "./presentation/pages/CustomerAccountPage.jsx";
 import SellerDashboardPage from "./presentation/pages/SellerDashboardPage.jsx";
 import { getPendingCart } from "./infrastructure/services/pendingCart.js";
 
@@ -107,10 +108,13 @@ export default function App() {
     };
   }, []);
 
-  if (["seller", "account", "admin"].includes(currentPage)) {
+  if (currentPage === "account") {
+    return <CustomerAccountPage />;
+  }
+
+  if (["seller", "admin"].includes(currentPage)) {
     const role = {
       seller: "seller",
-      account: "customer",
       admin: "admin",
     }[currentPage];
     return <SellerDashboardPage accountRole={role} />;

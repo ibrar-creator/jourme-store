@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Boxes,
-  CircleAlert,
   Eye,
   EyeOff,
+  CircleDollarSign,
   MapPin,
+  LayoutDashboard,
   LogOut,
   Package,
   Pencil,
   Plus,
   RefreshCw,
+  ShoppingCart,
   Store,
   Trash2,
   X,
@@ -762,7 +764,9 @@ function MetricCard({ icon: Icon, label, value, detail }) {
         </p>
         <Icon size={18} strokeWidth={1.5} className="text-neutral-500" />
       </div>
-      <p className="mt-6 text-3xl font-medium tracking-[-0.05em]">{value}</p>
+      <p className="mt-6 text-2xl font-medium tracking-[-0.05em] sm:text-3xl">
+        {value}
+      </p>
       <p className="mt-2 text-xs text-neutral-500">{detail}</p>
     </article>
   );
@@ -934,6 +938,7 @@ export default function SellerDashboardPage({ accountRole = "seller" }) {
   const [ordersResult, setOrdersResult] = useState({
     key: "",
     orders: [],
+    total: 0,
     error: "",
   });
   const orderRequestKey =
@@ -945,6 +950,12 @@ export default function SellerDashboardPage({ accountRole = "seller" }) {
     ordersResult.key === orderRequestKey ? ordersResult.orders : [];
   const ordersError =
     ordersResult.key === orderRequestKey ? ordersResult.error : "";
+  const totalOrders =
+    ordersResult.key === orderRequestKey ? ordersResult.total : 0;
+  const recentSales = orders.reduce(
+    (total, order) => total + (Number(order.subtotal) || 0),
+    0
+  );
   const [summary, setSummary] = useState({
     activeProducts: 0,
     inactiveProducts: 0,
@@ -1111,6 +1122,7 @@ export default function SellerDashboardPage({ accountRole = "seller" }) {
         setOrdersResult({
           key: orderRequestKey,
           orders: result.data || [],
+          total: result.pagination?.total ?? result.data?.length ?? 0,
           error: "",
         });
       })
@@ -1119,6 +1131,7 @@ export default function SellerDashboardPage({ accountRole = "seller" }) {
           setOrdersResult({
             key: orderRequestKey,
             orders: [],
+            total: 0,
             error: requestError.message || "Unable to load your orders.",
           });
         }
@@ -1303,214 +1316,341 @@ export default function SellerDashboardPage({ accountRole = "seller" }) {
   }
 
   return (
-    <main className="min-h-[calc(100vh-76px)] bg-neutral-50">
-      <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-10 sm:py-12 lg:px-16">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <main className="min-h-screen bg-[#f7f6f2] text-neutral-950">
+      <div className="flex min-h-screen">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-neutral-950 px-5 py-7 text-white lg:flex">
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("jourme:home"))}
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-neutral-600 hover:text-neutral-950"
+            className="mb-12 flex items-center gap-2 px-2 text-left text-xl font-black tracking-[-0.09em]"
+            aria-label="Jourme home"
           >
-            <ArrowLeft size={15} />
-            Back to store
+            JOURME<span className="text-amber-400">.</span>
           </button>
-          <button
-            type="button"
-            onClick={signOut}
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-neutral-600 hover:text-neutral-950"
-          >
-            <LogOut size={15} />
-            Sign out
-          </button>
-        </div>
-
-        <header className="mb-9 border-b border-neutral-200 pb-8">
-          <p className="mb-3 text-[10px] uppercase tracking-[0.24em] text-neutral-500">
-            Seller dashboard
+          <p className="px-3 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
+            Workspace
           </p>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-medium tracking-[-0.06em] sm:text-5xl">
-                {seller?.storeName || (seller ? `Hello, ${seller.name.split(" ")[0]}.` : "Your store.")}
-              </h1>
-              <p className="mt-3 text-sm text-neutral-500">
-                Manage your products, prices, stock, and customer orders.
-              </p>
-            </div>
-            {seller && (
-              <p className="text-xs text-neutral-500">{seller.email}</p>
-            )}
+          <nav aria-label="Seller dashboard" className="mt-4 space-y-1">
+            <a
+              href="#dashboard-overview"
+              className="flex items-center gap-3 bg-white/10 px-3 py-3 text-sm text-white"
+            >
+              <LayoutDashboard size={17} />
+              Overview
+            </a>
+            <a
+              href="#dashboard-products"
+              className="flex items-center gap-3 px-3 py-3 text-sm text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <Package size={17} />
+              Products
+            </a>
+            <a
+              href="#dashboard-orders"
+              className="flex items-center gap-3 px-3 py-3 text-sm text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <ShoppingCart size={17} />
+              Orders
+            </a>
+          </nav>
+          <div className="mt-auto border-t border-white/10 pt-5">
+            <p className="truncate px-3 text-sm font-medium">
+              {seller?.storeName || "Your store"}
+            </p>
+            <p className="mt-1 truncate px-3 text-xs text-neutral-500">
+              {seller?.email}
+            </p>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-5 flex w-full items-center gap-3 px-3 py-3 text-xs text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <LogOut size={16} />
+              Sign out
+            </button>
           </div>
-        </header>
+        </aside>
 
-        {error && !loading && seller && (
-          <div role="alert" className="mb-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {error}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-4 lg:hidden">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("jourme:home"))}
+              className="text-lg font-black tracking-[-0.09em]"
+              aria-label="Jourme home"
+            >
+              JOURME<span className="text-amber-500">.</span>
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              className="inline-flex items-center gap-2 text-xs text-neutral-600"
+            >
+              <LogOut size={15} />
+              Sign out
+            </button>
           </div>
-        )}
-        {successMessage && (
-          <div role="status" className="mb-6 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            {successMessage}
-          </div>
-        )}
+          <nav
+            aria-label="Seller dashboard"
+            className="flex gap-6 overflow-x-auto border-b border-neutral-200 bg-white px-5 py-3 text-xs lg:hidden"
+          >
+            <a href="#dashboard-overview" className="shrink-0 text-neutral-700">
+              Overview
+            </a>
+            <a href="#dashboard-products" className="shrink-0 text-neutral-500">
+              Products
+            </a>
+            <a href="#dashboard-orders" className="shrink-0 text-neutral-500">
+              Orders
+            </a>
+          </nav>
 
-        {(createOpen || editingProduct) && (
-          <ProductCreateForm
-            key={editingProduct?._id || "new-product"}
-            token={token}
-            initialProduct={editingProduct}
-            onCancel={() => {
-              setCreateOpen(false);
-              setEditingProduct(null);
-            }}
-            onSaved={handleProductSaved}
-          />
-        )}
-
-        <section aria-label="Store summary" className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <MetricCard
-            icon={Package}
-            label="Active products"
-            value={summary.activeProducts}
-            detail={`${summary.inactiveProducts} inactive`}
-          />
-          <MetricCard
-            icon={Boxes}
-            label="Units in inventory"
-            value={summary.totalStock}
-            detail="Across all of your products"
-          />
-          <MetricCard
-            icon={CircleAlert}
-            label="Low stock"
-            value={summary.lowStockProducts}
-            detail="Active products with 5 units or fewer"
-          />
-        </section>
-
-        <section className="border border-neutral-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-6">
-            <div>
-              <h2 className="text-lg font-medium tracking-tight">Products & inventory</h2>
-              <p className="mt-1 text-xs text-neutral-500">
-                {pagination.total} {pagination.total === 1 ? "product" : "products"} in your store
-              </p>
-            </div>
-            <div className="flex gap-2">
+          <div className="mx-auto max-w-[1440px] px-5 py-7 sm:px-8 sm:py-10 xl:px-12">
+            <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
               <button
                 type="button"
-                onClick={refreshDashboard}
-                aria-label="Refresh products"
-                className="inline-flex items-center gap-2 border border-neutral-200 px-3 py-2 text-[10px] uppercase tracking-widest hover:border-neutral-950"
+                onClick={() => window.dispatchEvent(new CustomEvent("jourme:home"))}
+                className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-neutral-600 hover:text-neutral-950"
               >
-                <RefreshCw size={13} />
-                Refresh
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSuccessMessage("");
-                  setEditingProduct(null);
-                  setCreateOpen((current) => !current);
-                }}
-                className="inline-flex items-center gap-2 bg-neutral-950 px-3 py-2 text-[10px] uppercase tracking-widest text-white hover:bg-neutral-700"
-              >
-                <Plus size={14} />
-                Add product
+                <ArrowLeft size={15} />
+                Back to store
               </button>
             </div>
-          </div>
 
-          <ProductInventory
-            products={products}
-            loading={loading}
-            error={error && !seller ? error : ""}
-            onRetry={refreshDashboard}
-            onEdit={openProductEditor}
-            onToggleActive={toggleProductActive}
-            busyProductId={busyProductId}
-          />
-
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-neutral-200 px-5 py-4 text-xs">
-              <span className="text-neutral-500">
-                Page {page} of {pagination.totalPages}
-              </span>
-              <div className="flex gap-2">
+            <header id="dashboard-overview" className="mb-8">
+              <div className="flex flex-wrap items-end justify-between gap-5">
+                <div>
+                  <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.24em] text-neutral-500">
+                    Store overview
+                  </p>
+                  <h1 className="text-4xl font-medium tracking-[-0.06em] sm:text-5xl">
+                    {seller?.storeName || (seller ? `Hello, ${seller.name.split(" ")[0]}.` : "Your store.")}
+                  </h1>
+                  <p className="mt-3 text-sm text-neutral-500">
+                    Here’s what’s happening with your store today.
+                  </p>
+                </div>
                 <button
                   type="button"
-                  disabled={page <= 1 || loading}
-                  onClick={() => changePage(page - 1)}
-                  className="border border-neutral-300 px-3 py-2 disabled:opacity-40"
+                  onClick={() => {
+                    setSuccessMessage("");
+                    setEditingProduct(null);
+                    setCreateOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 bg-neutral-950 px-5 py-3 text-xs font-medium uppercase tracking-[0.12em] text-white transition hover:bg-neutral-700"
                 >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={page >= pagination.totalPages || loading}
-                  onClick={() => changePage(page + 1)}
-                  className="border border-neutral-300 px-3 py-2 disabled:opacity-40"
-                >
-                  Next
+                  <Plus size={15} />
+                  Add product
                 </button>
               </div>
-            </div>
-          )}
-        </section>
+              <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-y border-neutral-200 py-3 text-xs text-neutral-500">
+                <span>{seller?.name}{seller?.email ? ` · ${seller.email}` : ""}</span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Store dashboard
+                </span>
+              </div>
+            </header>
 
-        <section className="mt-10 border border-neutral-200 bg-white">
-          <div className="border-b border-neutral-200 px-5 py-5 sm:px-6">
-            <h2 className="text-lg font-medium tracking-tight">Customer orders</h2>
-            <p className="mt-1 text-xs text-neutral-500">
-              Orders containing products from {seller?.storeName || "your store"}
-            </p>
-          </div>
-          {ordersLoading ? (
-            <div className="flex min-h-32 items-center justify-center gap-3 text-sm text-neutral-500">
-              <RefreshCw size={16} className="animate-spin" />
-              Loading your orders...
-            </div>
-          ) : ordersError ? (
-            <p role="alert" className="px-6 py-8 text-sm text-red-700">{ordersError}</p>
-          ) : orders.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-neutral-500">No orders for your products yet.</p>
-          ) : (
-            <div className="divide-y divide-neutral-200">
-              {orders.map((order) => (
-                <article key={order.orderNumber} className="space-y-4 px-5 py-5 sm:px-6">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-sm font-medium">{order.orderNumber}</h3>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {new Date(order.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right text-xs">
-                      <p className="capitalize">{order.status}</p>
-                      <p className="mt-1 text-neutral-500">
-                        {order.paymentStatus} · {currency.format(order.subtotal)}
-                      </p>
-                    </div>
-                  </div>
-                  <ul className="space-y-2 text-sm">
-                    {order.items.map((item) => (
-                      <li key={`${item.product}-${item.variantId}`} className="flex justify-between gap-4">
-                        <span>{item.name} · {item.color}, {item.size} × {item.quantity}</span>
-                        <span className="shrink-0">{currency.format(item.price * item.quantity)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="flex items-start gap-2 text-xs leading-5 text-neutral-500">
-                    <MapPin size={14} className="mt-0.5 shrink-0" />
-                    {order.shippingAddress.fullName}, {order.shippingAddress.phone},{" "}
-                    {order.shippingAddress.addressLine}, {order.shippingAddress.city},{" "}
-                    {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+            {error && !loading && seller && (
+              <div role="alert" className="mb-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {error}
+              </div>
+            )}
+            {successMessage && (
+              <div role="status" className="mb-6 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {successMessage}
+              </div>
+            )}
+
+            {(createOpen || editingProduct) && (
+              <ProductCreateForm
+                key={editingProduct?._id || "new-product"}
+                token={token}
+                initialProduct={editingProduct}
+                onCancel={() => {
+                  setCreateOpen(false);
+                  setEditingProduct(null);
+                }}
+                onSaved={handleProductSaved}
+              />
+            )}
+
+            <section aria-label="Store summary" className="mb-9 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard
+                icon={ShoppingCart}
+                label="Total orders"
+                value={totalOrders}
+                detail="Orders containing your products"
+              />
+              <MetricCard
+                icon={CircleDollarSign}
+                label="Recent order value"
+                value={currency.format(recentSales)}
+                detail={
+                  ordersLoading
+                    ? "Loading recent orders"
+                    : `From ${orders.length} most recent orders`
+                }
+              />
+              <MetricCard
+                icon={Package}
+                label="Active products"
+                value={summary.activeProducts}
+                detail={`${summary.inactiveProducts} inactive`}
+              />
+              <MetricCard
+                icon={Boxes}
+                label="Units in inventory"
+                value={summary.totalStock}
+                detail={`${summary.lowStockProducts} products low on stock`}
+              />
+            </section>
+
+            <section id="dashboard-products" className="scroll-mt-6 border border-neutral-200 bg-white">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-6">
+                <div>
+                  <p className="mb-1 text-[10px] uppercase tracking-[0.17em] text-neutral-500">
+                    Catalog
                   </p>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                  <h2 className="text-lg font-medium tracking-tight">Products & inventory</h2>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {pagination.total} {pagination.total === 1 ? "product" : "products"} in your store
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={refreshDashboard}
+                    aria-label="Refresh products"
+                    className="inline-flex items-center gap-2 border border-neutral-200 px-3 py-2 text-[10px] uppercase tracking-widest hover:border-neutral-950"
+                  >
+                    <RefreshCw size={13} />
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSuccessMessage("");
+                      setEditingProduct(null);
+                      setCreateOpen((current) => !current);
+                    }}
+                    className="inline-flex items-center gap-2 bg-neutral-950 px-3 py-2 text-[10px] uppercase tracking-widest text-white hover:bg-neutral-700"
+                  >
+                    <Plus size={14} />
+                    Add product
+                  </button>
+                </div>
+              </div>
+
+              <ProductInventory
+                products={products}
+                loading={loading}
+                error={error && !seller ? error : ""}
+                onRetry={refreshDashboard}
+                onEdit={openProductEditor}
+                onToggleActive={toggleProductActive}
+                busyProductId={busyProductId}
+              />
+
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-neutral-200 px-5 py-4 text-xs">
+                  <span className="text-neutral-500">
+                    Page {page} of {pagination.totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={page <= 1 || loading}
+                      onClick={() => changePage(page - 1)}
+                      className="border border-neutral-300 px-3 py-2 disabled:opacity-40"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      disabled={page >= pagination.totalPages || loading}
+                      onClick={() => changePage(page + 1)}
+                      className="border border-neutral-300 px-3 py-2 disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section id="dashboard-orders" className="mt-8 scroll-mt-6 border border-neutral-200 bg-white">
+              <div className="border-b border-neutral-200 px-5 py-5 sm:px-6">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="mb-1 text-[10px] uppercase tracking-[0.17em] text-neutral-500">
+                      Sales activity
+                    </p>
+                    <h2 className="text-lg font-medium tracking-tight">Customer orders</h2>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Orders containing products from {seller?.storeName || "your store"}
+                    </p>
+                  </div>
+                  <span className="text-xs text-neutral-500">
+                    {orders.length} recent {orders.length === 1 ? "order" : "orders"} shown
+                  </span>
+                </div>
+              </div>
+              {ordersLoading ? (
+                <div className="flex min-h-32 items-center justify-center gap-3 text-sm text-neutral-500">
+                  <RefreshCw size={16} className="animate-spin" />
+                  Loading your orders...
+                </div>
+              ) : ordersError ? (
+                <p role="alert" className="px-6 py-8 text-sm text-red-700">{ordersError}</p>
+              ) : orders.length === 0 ? (
+                <div className="flex min-h-48 flex-col items-center justify-center px-6 text-center">
+                  <ShoppingCart size={24} strokeWidth={1.4} className="text-neutral-400" />
+                  <p className="mt-4 text-sm font-medium">No orders just yet</p>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Orders for your products will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-neutral-200">
+                  {orders.map((order) => (
+                    <article key={order.orderNumber} className="space-y-4 px-5 py-5 sm:px-6">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-sm font-medium">{order.orderNumber}</h3>
+                          <p className="mt-1 text-xs text-neutral-500">
+                            {new Date(order.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right text-xs">
+                          <p className="capitalize">{order.status}</p>
+                          <p className="mt-1 text-neutral-500">
+                            {order.paymentStatus} · {currency.format(order.subtotal)}
+                          </p>
+                        </div>
+                      </div>
+                      <ul className="space-y-2 text-sm">
+                        {order.items.map((item) => (
+                          <li key={`${item.product}-${item.variantId}`} className="flex justify-between gap-4">
+                            <span>{item.name} · {item.color}, {item.size} × {item.quantity}</span>
+                            <span className="shrink-0">{currency.format(item.price * item.quantity)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="flex items-start gap-2 text-xs leading-5 text-neutral-500">
+                        <MapPin size={14} className="mt-0.5 shrink-0" />
+                        {order.shippingAddress.fullName}, {order.shippingAddress.phone},{" "}
+                        {order.shippingAddress.addressLine}, {order.shippingAddress.city},{" "}
+                        {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
       </div>
     </main>
   );
