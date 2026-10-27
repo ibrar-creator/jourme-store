@@ -17,7 +17,7 @@ function createLimiter({ windowMs, limit, message, skipSuccessfulRequests = fals
 }
 
 export const registerRateLimit = createLimiter({
-  windowMs:60 * 1000,
+  windowMs:15 * 60 * 1000,
   limit: 10,
   message: "Too many registration attempts. Try again later.",
 });

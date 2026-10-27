@@ -12,11 +12,41 @@ import MainLayout from "../layouts/MainLayout.jsx";
 import ProductGrid from "../components/products/ProductGrid.jsx";
 
 const categories = ["All", "Clothing", "Accessories", "Footwear"];
+const heroSlides = [
+  {
+    title: "Refined essentials",
+    subtitle: "for modern living",
+    style: "and everyday wear.",
+    copy: "Premium clothing designed with clean silhouettes and lasting comfort.",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=2200&q=90",
+    label: "Clothing",
+  },
+  {
+    title: "Elevated finishing",
+    subtitle: "touches",
+    style: "that complete the look.",
+    copy: "Curated accessories that add polish, utility, and ease to daily styling.",
+    image:
+      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=2200&q=90",
+    label: "Accessories",
+  },
+  {
+    title: "Movement-first",
+    subtitle: "footwear",
+    style: "for everyday confidence.",
+    copy: "Minimal, functional shoes built for comfort, versatility, and modern routines.",
+    image:
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=2200&q=90",
+    label: "Footwear",
+  },
+];
 
 export default function HomePage() {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const { products, pagination, loading, error, refreshProducts } = useProducts({
     category,
@@ -24,6 +54,21 @@ export default function HomePage() {
     page,
     limit: 12,
   });
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function moveSlide(direction) {
+    setActiveSlide((current) => {
+      const nextIndex = (current + direction + heroSlides.length) % heroSlides.length;
+      return nextIndex;
+    });
+  }
 
   function goToPage(nextPage) {
     setPage(nextPage);
@@ -62,6 +107,8 @@ export default function HomePage() {
     };
   }, []);
 
+  const activeHero = heroSlides[activeSlide];
+
   return (
     <MainLayout>
       {/* HERO SECTION */}
@@ -70,8 +117,8 @@ export default function HomePage() {
         className="relative isolate min-h-[570px] overflow-hidden bg-neutral-100 sm:min-h-[660px] lg:min-h-[720px]"
       >
         <img
-          src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=2200&q=90"
-          alt="Minimal contemporary fashion store"
+          src={activeHero.image}
+          alt={`${activeHero.label} collection`}
           className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
 
@@ -79,15 +126,15 @@ export default function HomePage() {
 
         <div className="mx-auto flex min-h-[570px] max-w-[1440px] flex-col items-start justify-end px-6 pb-16 text-white sm:min-h-[660px] sm:px-12 sm:pb-20 lg:min-h-[720px] lg:px-16 lg:pb-24">
           <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.3em] sm:text-xs">
-            LESS, BUT BETTER — COLLECTION 01
+            LESS, BUT BETTER — COLLECTION {activeSlide + 1}
           </p>
 
           <h1 className="max-w-4xl text-5xl font-medium leading-[0.98] tracking-[-0.065em] sm:text-7xl lg:text-[100px]">
-            Everyday,
+            {activeHero.title}
             <br />
-            exceptionally
+            {activeHero.subtitle}
             <br />
-            <span className="font-serif italic font-normal">considered.</span>
+            <span className="font-serif italic font-normal">{activeHero.style}</span>
           </h1>
 
           <div className="mt-8 flex flex-wrap items-center gap-5 sm:mt-10">
@@ -100,8 +147,40 @@ export default function HomePage() {
             </a>
 
             <span className="max-w-44 text-xs leading-5 text-white/80">
-              Thoughtful essentials. Made for everyday living.
+              {activeHero.copy}
             </span>
+          </div>
+
+          <div className="mt-8 flex items-center gap-3">
+            <button
+              type="button"
+              aria-label="Previous slide"
+              onClick={() => moveSlide(-1)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/10 text-white transition hover:bg-white/20"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label="Next slide"
+              onClick={() => moveSlide(1)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/10 text-white transition hover:bg-white/20"
+            >
+              <ChevronRight size={18} />
+            </button>
+            <div className="ml-2 flex items-center gap-2" aria-label="Slide indicators">
+              {heroSlides.map((slide, index) => (
+                <button
+                  key={slide.label}
+                  type="button"
+                  aria-label={`Go to ${slide.label} slide`}
+                  onClick={() => setActiveSlide(index)}
+                  className={`h-2.5 rounded-full transition ${
+                    index === activeSlide ? "w-8 bg-white" : "w-2.5 bg-white/50 hover:bg-white/80"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
