@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import healthRoutes from "./modules/health/health.route.js";
 import productRoutes from "./modules/products/product.routes.js";
 import orderRoutes from "../modules/orders/order.routes.js";
-import userRoutes from "./modules/users/user.routes.js"; // Import user routes to ensure they are registered
+import userRoutes from "./modules/users/user.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,12 +20,11 @@ if (Number.isInteger(trustProxyHops) && trustProxyHops >= 0) {
   app.set("trust proxy", trustProxyHops);
 }
 
-// Express app mein yeh configuration update karein
+// 1. Helmet settings ko update kiya taake HTTP par cross-origin errors na aayein
 app.use(helmet({
-  crossOriginOpenerPolicy: false, // COOP error khatam karne ke liye
-  originAgentCluster: false      // Cluster error khatam karne ke liye
+  crossOriginOpenerPolicy: false,
+  originAgentCluster: false
 }));
-
 
 app.use(
   cors({
@@ -37,7 +36,8 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
+// 2. /api/ root route banaya taake welcome message bhi rahe aur frontend block na ho
+app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Welcome to the Jourme API",
@@ -50,9 +50,10 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
 
 const publicDir = path.join(__dirname, "..", "public");
-
 app.use(express.static(publicDir));
-app.get("*any", (req, res) => {
+
+// Wildcard parameter syntax strictly follows: /*paramName
+app.get("/*any", (req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({
       success: false,
@@ -62,6 +63,7 @@ app.get("*any", (req, res) => {
 
   return res.sendFile(path.join(publicDir, "index.html"));
 });
+
 
 app.use((req, res) => {
   res.status(404).json({
