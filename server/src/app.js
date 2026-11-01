@@ -40,7 +40,7 @@ app.use(cookieParser());
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the Jourme API",
+    message: "Welcome to the Jourme API how are you doing today?",
   });
 });
 
