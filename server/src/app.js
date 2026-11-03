@@ -18,6 +18,7 @@ const app = express();
 
 app.disable("x-powered-by");
 
+// Trust proxy
 const trustProxyHops = Number.parseInt(
   process.env.TRUST_PROXY_HOPS || "0",
   10
@@ -51,7 +52,7 @@ app.use(cookieParser());
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the Jourme API how are you doing today?",
+    message: "Welcome to the Jourme API!",
   });
 });
 
@@ -64,10 +65,17 @@ app.use("/api/users", userRoutes);
 // Frontend production build
 const frontendDir = path.resolve(__dirname, "../dist");
 
-// Serve frontend static files
+// Serve frontend assets
 app.use(express.static(frontendDir));
 
-// Frontend routes + API 404 handling
+// Frontend entry point
+app.get("/", (req, res, next) => {
+  res.sendFile(path.join(frontendDir, "index.html"), (error) => {
+    if (error) next(error);
+  });
+});
+
+// Handle frontend routes (React Router)
 app.get("/*any", (req, res, next) => {
   if (req.path.startsWith("/api/") || req.path === "/api") {
     return res.status(404).json({
@@ -76,15 +84,12 @@ app.get("/*any", (req, res, next) => {
     });
   }
 
-  return res.sendFile(
-    path.join(frontendDir, "index.html"),
-    (error) => {
-      if (error) next(error);
-    }
-  );
+  return res.sendFile(path.join(frontendDir, "index.html"), (error) => {
+    if (error) next(error);
+  });
 });
 
-// General 404 handler
+// General 404
 app.use((req, res) => {
   res.status(404).json({
     success: false,
