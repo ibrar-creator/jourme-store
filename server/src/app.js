@@ -33,20 +33,6 @@ app.use(
   helmet({
     crossOriginOpenerPolicy: false,
     originAgentCluster: false,
-
-    contentSecurityPolicy: {
-      directives: {
-        imgSrc: [
-          "'self'",
-          "data:",
-          "https://images.unsplash.com",
-        ],
-
-        connectSrc: [
-          "'self'",
-        ],
-      },
-    },
   })
 );
 
