@@ -16,7 +16,7 @@ export function getAccessToken() {
 export function refreshAccessSession() {
   if (!refreshPromise) {
     refreshPromise = (async () => {
-      const response = await fetch(`${API_BASE_URL}/api/users/refresh`, {
+      const response = await fetch(`${API_BASE_URL}/users/refresh`, {
         method: "POST",
         headers: { Accept: "application/json" },
         credentials: "include",
@@ -80,7 +80,7 @@ export async function httpRequest(
   if (
     response.status === 401 &&
     requestHeaders.Authorization &&
-    normalizedPath !== "/api/users/refresh"
+    normalizedPath !== "/users/refresh"
   ) {
     const refreshedToken = await refreshAccessToken();
     if (refreshedToken) {

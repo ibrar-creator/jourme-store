@@ -23,7 +23,7 @@ export async function fetchProducts({
 
   const query = params.toString();
 
-  return httpRequest(`/api/products?${query}`, {
+  return httpRequest(`/products?${query}`, {
     method: "GET",
     signal,
   });
@@ -35,7 +35,7 @@ export async function fetchProductById(id, { signal } = {}) {
   }
 
   return httpRequest(
-    `/api/products/${encodeURIComponent(id)}`,
+    `/products/${encodeURIComponent(id)}`,
     {
       method: "GET",
       signal,

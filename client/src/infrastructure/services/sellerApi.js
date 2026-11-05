@@ -14,14 +14,14 @@ export function registerSeller({
   role = "seller",
   storeName,
 }) {
-  return httpRequest("/api/users/register", {
+  return httpRequest("/users/register", {
     method: "POST",
     body: { name, email, password, role, storeName },
   });
 }
 
 export async function loginSeller({ email, password }) {
-  const result = await httpRequest("/api/users/login", {
+  const result = await httpRequest("/users/login", {
     method: "POST",
     body: { email, password },
   });
@@ -60,7 +60,7 @@ export async function getShoppingUser() {
 
 export async function logoutSeller() {
   try {
-    return await httpRequest("/api/users/logout", {
+    return await httpRequest("/users/logout", {
       method: "POST",
     });
   } finally {
@@ -69,28 +69,28 @@ export async function logoutSeller() {
 }
 
 export function verifySellerEmail(token) {
-  return httpRequest("/api/users/verify-email", {
+  return httpRequest("/users/verify-email", {
     method: "POST",
     body: { token },
   });
 }
 
 export function resendSellerVerification(email) {
-  return httpRequest("/api/users/resend-verification", {
+  return httpRequest("/users/resend-verification", {
     method: "POST",
     body: { email },
   });
 }
 
 export function requestSellerPasswordReset(email) {
-  return httpRequest("/api/users/forgot-password", {
+  return httpRequest("/users/forgot-password", {
     method: "POST",
     body: { email },
   });
 }
 
 export async function resetSellerPassword(token, password) {
-  const result = await httpRequest("/api/users/reset-password", {
+  const result = await httpRequest("/users/reset-password", {
     method: "POST",
     body: { token, password },
   });
@@ -99,7 +99,7 @@ export async function resetSellerPassword(token, password) {
 }
 
 export function fetchSellerProfile(token = getAccessToken(), { signal } = {}) {
-  return httpRequest("/api/users/me", {
+  return httpRequest("/users/me", {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
@@ -114,7 +114,7 @@ export function fetchSellerProducts(
     limit: String(limit),
   });
 
-  return httpRequest(`/api/products/mine?${params}`, {
+  return httpRequest(`/products/mine?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
@@ -129,14 +129,14 @@ export function fetchSellerOrders(
     limit: String(limit),
   });
 
-  return httpRequest(`/api/orders/seller?${params}`, {
+  return httpRequest(`/orders/seller?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
 }
 
 export function createSellerProduct(token, product) {
-  return httpRequest("/api/products", {
+  return httpRequest("/products", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: product,
@@ -144,7 +144,7 @@ export function createSellerProduct(token, product) {
 }
 
 export function updateSellerProduct(token, productId, product) {
-  return httpRequest(`/api/products/${encodeURIComponent(productId)}`, {
+  return httpRequest(`/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
     headers: { Authorization: `Bearer ${token}` },
     body: product,
@@ -153,7 +153,7 @@ export function updateSellerProduct(token, productId, product) {
 
 export function setSellerProductActive(token, productId, isActive) {
   return httpRequest(
-    `/api/products/${encodeURIComponent(productId)}/status`,
+    `/products/${encodeURIComponent(productId)}/status`,
     {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },

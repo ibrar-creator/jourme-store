@@ -125,7 +125,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      const result = await httpRequest("/api/orders", {
+      const result = await httpRequest("/orders", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
