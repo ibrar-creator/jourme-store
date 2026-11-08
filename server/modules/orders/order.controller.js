@@ -101,7 +101,7 @@ export async function createOrder(req, res) {
   if ([...quantities.values()].some((item) => item.quantity > 100)) {
     return res.status(400).json({
       success: false,
-      message: "Requested quantity exceeds the allowed limit.",
+      message: "Requested quantity exceeds the allowed limits. ",
     });
   }
 
