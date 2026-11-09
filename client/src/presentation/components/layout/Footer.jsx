@@ -49,7 +49,7 @@ export default function Footer() {
 
                   <ArrowUpRight
                     size={14}
-                    className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 "
                   />
                 </a>
               ))}
