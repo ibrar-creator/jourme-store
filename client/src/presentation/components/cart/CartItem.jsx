@@ -42,7 +42,7 @@ export default function CartItem({
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-neutral-400">
-            No image
+            No Image
           </div>
         )}
       </div>
